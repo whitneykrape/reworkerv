@@ -1,0 +1,172 @@
+esphome:
+  name: room-erv
+  friendly_name: Room ERV
+  min_version: 2024.11.0
+  name_add_mac_suffix: false
+  on_boot:
+    priority: -100
+    then:
+      - logger.log: "Waiting for first CO2 reading..."
+      - light.turn_on:
+          id: rgb_led
+          red: 100%
+          green: 100%
+          blue: 100%
+          brightness: 10%
+      - output.set_level:
+          id: pwm_fan
+          level: 0
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+
+logger:
+  level: DEBUG
+
+api:
+
+ota:
+  platform: esphome
+  on_end:
+    then:
+      - delay: 1s
+      - button.press: restart_me
+
+button:
+  - platform: restart
+    id: restart_me
+    name: "Force Restart"
+
+wifi:
+  ssid: "{{ .Values.wifissd }}" 
+  password: "{{ .Values.wifipass }}"
+
+i2c:
+  id: bus_a
+  sda: 10
+  scl: 9
+  scan: true
+  frequency: 50000Hz
+
+time:
+  - platform: homeassistant
+    id: ha_time
+
+globals:
+  - id: co2_color_level
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+sensor:
+  - platform: scd4x
+    i2c_id: bus_a
+    co2:
+      name: "room's ERV CO2"
+      id: room_co2
+      on_value:
+        then:
+          - lambda: |-
+              int hour = id(ha_time).now().hour;
+              int brightness = (hour >= 8 && hour < 19) ? 40 : 10;
+              int level;
+              if (!isnan(id(room_co2).state)) {
+                if (id(room_co2).state < 1050) {
+                  level = 1;
+                } else if (id(room_co2).state < 1300) {
+                  level = 2;
+                } else {
+                  level = 3;
+                }
+                id(co2_color_level) = level;
+              }
+              if (id(co2_color_level) == 1) {
+                auto call = id(rgb_led).turn_on();
+                call.set_rgb(0, 1, 0);
+                call.set_brightness(brightness / 100.0);
+                call.perform();
+              } else if (id(co2_color_level) == 2) {
+                auto call = id(rgb_led).turn_on();
+                call.set_rgb(1, 1, 0);
+                call.set_brightness(brightness / 100.0);
+                call.perform();
+              } else if (id(co2_color_level) == 3) {
+                auto call = id(rgb_led).turn_on();
+                call.set_rgb(1, 0, 0);
+                call.set_brightness(brightness / 100.0);
+                call.perform();
+              }
+    temperature:
+      name: "room's ERV Temp"
+      unit_of_measurement: "°F"
+      accuracy_decimals: 1
+      filters:
+        - lambda: return x * 1.8 + 32.0;
+    humidity:
+      name: "room's ERV Humidity"
+    update_interval: 10s
+
+  - platform: pulse_counter
+    pin:
+      number: GPIO13
+      mode:
+        input: true
+        pullup: true
+    name: "room's ERV Fan RPM"
+    unit_of_measurement: "RPM"
+    filters:
+    - multiply: 0.106
+    update_interval: 10s
+    accuracy_decimals: 0
+
+output:
+  - platform: ledc
+    pin: GPIO14
+    id: pwm_fan
+    frequency: 1000Hz
+    inverted: false
+    min_power: 0.0
+    max_power: 1.0
+    zero_means_zero: true
+
+fan:
+  - platform: template
+    name: "room's ERV Fan"
+    id: rooms_erv_fan
+    speed_count: 3
+    on_turn_on:
+      - lambda: |-
+          if (id(rooms_erv_fan).speed == 1) {  // Low
+            id(pwm_fan).set_level(0.6);
+          } else if (id(rooms_erv_fan).speed == 2) {  // Medium
+            id(pwm_fan).set_level(0.85);
+          } else if (id(rooms_erv_fan).speed == 3) {  // High
+            id(pwm_fan).set_level(1.0);
+          }
+      - logger.log: "Fan turned ON"
+    on_turn_off:
+      - output.set_level:
+          id: pwm_fan
+          level: 0
+      - logger.log: "Fan turned OFF"
+    on_speed_set:
+      - lambda: |-
+          if (x == 1) {  // Low
+            id(pwm_fan).set_level(0.6);
+          } else if (x == 2) {  // Medium
+            id(pwm_fan).set_level(0.85);
+          } else if (x == 3) {  // High
+            id(pwm_fan).set_level(1.0);
+          }
+
+light:
+  - platform: neopixelbus
+    id: rgb_led
+    type: GRB
+    pin: 48
+    variant: ws2812
+    num_leds: 1
+    name: "room's ERV RGB LED"
+    restore_mode: ALWAYS_ON
