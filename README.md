@@ -67,4 +67,4 @@ portalqubes [Original Post](https://www.reddit.com/r/homeassistant/comments/1lap
 
 This project is licensed under the MIT License
 
-Not AI used in this code currently, may need local AI for further development
+No AI used in this code currently, may need local AI for further development
