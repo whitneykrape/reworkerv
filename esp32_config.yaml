@@ -40,8 +40,8 @@ button:
     name: "Force Restart"
 
 wifi:
-  ssid: "{{ .Values.wifissd }}" 
-  password: "{{ .Values.wifipass }}"
+  ssid: "{{ .values.wifissd }}" 
+  password: "{{ .values.wifipass }}"
 
 i2c:
   id: bus_a

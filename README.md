@@ -13,7 +13,7 @@ Last, hopefully Tosot is cool with this and doesn't try and weirdness to lock do
 
 ## Description
 
-portalqubes on reddit put together an awesome guide for using a Tosot Mini-ERV, SU-AORAKI-ERV, using a 12 volt supply (the fan unit is 12 volt) and a buck converter to run the ESP32 at 5 volts. I slightly modified this to use a 12 volt USB-C Trigger Board. Do your own research for the parts, not happy with list. Will try and make a new, tested, list. 12 volt is an optional spec for USB-C, not all wallworts will provide it. 
+[portalqubes on reddit](https://www.reddit.com/r/homeassistant/comments/1laprlc/anyone_in_need_of_an_esphome_erv/) put together an awesome guide for using a Tosot Mini-ERV, SU-AORAKI-ERV, using a 12 volt supply (the fan unit is 12 volt) and a buck converter to run the ESP32 at 5 volts. I slightly modified this to use a 12 volt USB-C Trigger Board. Do your own research for the parts, not happy with list. Will try and make a new, tested, list. 12 volt is an optional spec for USB-C, not all wallworts will provide it. 
 
 * [Tosot Mini-ERV](https://www.amazon.com/TOSOT-Ventilation-Conditioner-Residential-Applications/dp/B0DZCN1MQT)
 * [Trigger Board](https://www.adafruit.com/product/5991)
