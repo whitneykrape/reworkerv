@@ -41,7 +41,7 @@ Last, hopefully Tosot is cool with this and doesn't try and weirdness to lock do
     * Ground and 3 volt to the SCD40
         * Pins 10 and 9 are for the Sensor, bus_a
         * These are noted in the code, straightforward
-    * The original author is using the LED on the ESP32 for notifications but the LED might work at 3 volt?
+    * The original author is using the LED on the ESP32 for notifications but the LED on the ERV might work at 3 volt?
         * Here red does seem to be positive and black negative (and didn't work in the reverse)
 * Update the room name, device name, wifi, and other values in the .yaml
 * Install with your favorite ESP installer
