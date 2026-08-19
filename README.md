@@ -2,7 +2,7 @@
 
 Currently this is a library for an ESP32-S3 to control a Tosot Mini-ERV. There are few ERV options for folks without ducts. Looking to build out a repository that gathers the options noting pluses and minuses along with modifications needed to get each option working. 
 
-Quick note, this is my first ESP32 and low voltage project to recheck my notes as you work. 
+Quick note, this is my first ESP32 and low voltage project so recheck my notes as you work. 
 I don't have this installed into the wall yet but do have the unit operating nicely. 
 
 Next steps:
