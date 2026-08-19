@@ -11,6 +11,9 @@ Next steps:
 
 Last, hopefully Tosot is cool with this and doesn't try and weirdness to lock down their units. It is fine if these units are non-warrantied of course but this is one of the few, reasonably priced, through wall vent units that does not requite major work (adding ducts, drilling out 8 inch holes, so on.)
 
+## Additional Options
+Added an ERVOptions.md (probably need to start a full documention area.)
+
 ## Description
 
 [portalqubes on reddit](https://www.reddit.com/r/homeassistant/comments/1laprlc/anyone_in_need_of_an_esphome_erv/) put together an awesome guide for using a Tosot Mini-ERV, SU-AORAKI-ERV, using a 12 volt supply (the fan unit is 12 volt) and a buck converter to run the ESP32 at 5 volts. I slightly modified this to use a 12 volt USB-C Trigger Board. Do your own research for the parts, not happy with list. Will try and make a new, tested, list. 12 volt is an optional spec for USB-C, not all wallworts will provide it. 
