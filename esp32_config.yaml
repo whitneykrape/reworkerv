@@ -40,8 +40,8 @@ button:
     name: "Force Restart"
 
 wifi:
-  ssid: "{{ .values.wifissd }}" 
-  password: "{{ .values.wifipass }}"
+  ssid: lonepinehill
+  password: AUH6J8PFLPqBXj
 
 i2c:
   id: bus_a
@@ -59,6 +59,14 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
+  - id: fan_override
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+  - id: fan_mode
+    type: std::string
+    restore_value: yes
+    initial_value: ""
 
 sensor:
   - platform: scd4x
@@ -82,21 +90,23 @@ sensor:
                 }
                 id(co2_color_level) = level;
               }
-              if (id(co2_color_level) == 1) {
-                auto call = id(rgb_led).turn_on();
-                call.set_rgb(0, 1, 0);
-                call.set_brightness(brightness / 100.0);
-                call.perform();
-              } else if (id(co2_color_level) == 2) {
-                auto call = id(rgb_led).turn_on();
-                call.set_rgb(1, 1, 0);
-                call.set_brightness(brightness / 100.0);
-                call.perform();
-              } else if (id(co2_color_level) == 3) {
-                auto call = id(rgb_led).turn_on();
-                call.set_rgb(1, 0, 0);
-                call.set_brightness(brightness / 100.0);
-                call.perform();
+              if (id(fan_mode) == "auto" && !id(fan_override)) {
+                if (id(co2_color_level) == 1) {
+                  auto call = id(rgb_led).turn_on();
+                  call.set_rgb(0, 1, 0);
+                  call.set_brightness(brightness / 100.0);
+                  call.perform();
+                } else if (id(co2_color_level) == 2) {
+                  auto call = id(rgb_led).turn_on();
+                  call.set_rgb(1, 1, 0);
+                  call.set_brightness(brightness / 100.0);
+                  call.perform();
+                } else if (id(co2_color_level) == 3) {
+                  auto call = id(rgb_led).turn_on();
+                  call.set_rgb(1, 0, 0);
+                  call.set_brightness(brightness / 100.0);
+                  call.perform();
+                }
               }
     temperature:
       name: "room's ERV Temp"
@@ -130,6 +140,73 @@ output:
     min_power: 0.0
     max_power: 1.0
     zero_means_zero: true
+
+binary_sensor:
+  - platform: gpio
+    pin: 
+      number: GPIO19
+      mode: INPUT_PULLUP
+    name: "Physical Fan Button"
+    id: physical_fan_button
+    on_press:
+      then:
+        - lambda: |-
+            if (id(fan_mode) == "off") {
+              id(pwm_fan).set_level(0.6);
+              id(fan_mode) = "low";
+              id(fan_override) = true;
+            } else if (id(fan_mode) == "low") {
+              id(pwm_fan).set_level(0.85);
+              id(fan_mode) = "medium";
+              id(fan_override) = true;
+            } else if (id(fan_mode) == "medium") {
+              id(pwm_fan).set_level(1.0);
+              id(fan_mode) = "high";
+              id(fan_override) = true;
+            } else if (id(fan_mode) == "high") {
+              id(fan_mode) = "auto";
+              id(fan_override) = false;
+            } else if (id(fan_mode) == "auto") {
+              id(pwm_fan).set_level(0);
+              id(fan_mode) = "off";
+              id(fan_override) = true;
+            }
+
+select:
+  - platform: template
+    name: "Fan Mode"
+    id: select_fan_mode
+    options:
+      - "high"
+      - "medium"
+      - "low"
+      - "off"
+      - "auto"
+    lambda: |-
+      return id(fan_mode);
+    set_action:
+      - lambda: |-
+          id(fan_mode) = x;
+          // If user picks auto, drop override to false to let CO2 control it
+          if (x == "auto") {
+            id(fan_override) = false;
+          } else {
+            // Any other mode forces override to true and sets fan speed manually
+            id(fan_override) = true;
+            if (id(fan_mode) == "high") {
+              id(pwm_fan).set_level(1.0);
+            } else if (x == "medium") {
+              id(pwm_fan).set_level(0.85);
+            } else if (x == "low") {
+              id(pwm_fan).set_level(0.6);
+            } else if (x == "off") {
+              id(pwm_fan).set_level(0);
+            }
+            if (x != "off") {
+              
+            }
+          }
+
 
 fan:
   - platform: template
